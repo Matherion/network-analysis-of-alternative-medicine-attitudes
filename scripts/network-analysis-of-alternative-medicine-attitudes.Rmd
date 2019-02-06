@@ -1,0 +1,28 @@
+---
+title: "Network analysis of alternative medicine attitudes"
+author: "Szilvia Zörgő, Samvel Mkhitaryan & Gjalt-Jorn Peters"
+date: "February 6, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE);
+
+if (!'ufs' %in% row.names(installed.packages())) install.packages('ufs');
+ufs::safeRequire('haven');
+ufs::safeRequire('here');
+
+dataPath <-
+  here::here('data');
+
+```
+
+## Load data
+
+```{r import-data}
+dat <-
+  haven::read_sav(file.path(dataPath,
+                            'database.orig.sav'));
+```
+
+
