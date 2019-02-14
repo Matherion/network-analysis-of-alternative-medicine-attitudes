@@ -19,6 +19,7 @@ require('haven');
 ufs::safeRequire('haven');
 ufs::safeRequire('here');
 ufs::safeRequire('pander');
+ufs::safeRequire('GGally');
 ufs::safeRequire('userfriendlyscience');
 
 dataPath <-
@@ -30,9 +31,15 @@ dataPath <-
 
 ```{r import-data}
 
+### Import using haven
 dat <-
   haven::read_sav(file.path(dataPath,
                             'database.orig.new labels.sav'));
+
+### ... But convert to a data frame instead of a tibble, because,
+### for example, length(unique(dat[, 'group'])) results in 1 instead
+### of 2...
+dat <- as.data.frame(dat);
 
 ### Set group as factor
 dat$group <-
@@ -59,15 +66,31 @@ pander(userfriendlyscience::freq(dat$group));
 ufs::cat0("\n\n### Attitude\n\n");
 
 ufs::meansComparisonDiamondPlot(dat,
-                                attitudeVars);
+                                rev(attitudeVars),
+                                compareBy = 'group');
 
 ```
 
 ## Correlations
 
-```{r correlations}
+```{r correlations, fig.width=16, fig.height=16}
 
+### Takes way too long, huge, etc
+# GGally::ggpairs(dat[, attitudeVars]);
 
+cors <- cor(dat[, attitudeVars]);
+
+knitr::kable(cors);
+
+### http://www.sthda.com/english/wiki/ggcorrplot-visualization-of-a-correlation-matrix-using-ggplot2
+                
+ggcorrplot::ggcorrplot(cors);
+
+ggcorrplot::ggcorrplot(cors,
+                       method = "circle");
+
+ggcorrplot::ggcorrplot(cors,
+                       lab = TRUE);
 
 ```
 
