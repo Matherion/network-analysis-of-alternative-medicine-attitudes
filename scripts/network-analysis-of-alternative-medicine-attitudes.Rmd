@@ -67,7 +67,10 @@ ufs::cat0("\n\n### Attitude\n\n");
 
 ufs::meansComparisonDiamondPlot(dat,
                                 rev(attitudeVars),
-                                compareBy = 'group');
+                                compareBy = 'group',
+                                comparisonColors = viridis::viridis(2,
+                                                                    end=.7),
+                                dataAlpha=.25);
 
 ```
 
