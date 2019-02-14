@@ -15,8 +15,10 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE);
 
 if (!'ufs' %in% row.names(installed.packages())) install.packages('ufs');
+require('haven');
 ufs::safeRequire('haven');
 ufs::safeRequire('here');
+ufs::safeRequire('pander');
 ufs::safeRequire('userfriendlyscience');
 
 dataPath <-
@@ -27,9 +29,10 @@ dataPath <-
 ## Loading and preparing data
 
 ```{r import-data}
+
 dat <-
   haven::read_sav(file.path(dataPath,
-                            'database.orig.sav'));
+                            'database.orig.new labels.sav'));
 
 ### Set group as factor
 dat$group <-
@@ -37,14 +40,26 @@ dat$group <-
          levels=1:2,
          labels=c("Alternative medicine",
                   "Medicine"));
-         
+
+### Extract and store attitude variable names
+attitudeVars <-
+  grep('ATT1_',
+       names(dat),
+       value=TRUE);
+
 ```
 
 ## Descriptives
 
-```{r descriptives}
+```{r descriptives, fig.height=20}
 
-userfriendlyscience::freq(dat$group);
+ufs::cat0("\n\n### Group\n\n");
+pander(userfriendlyscience::freq(dat$group));
+
+ufs::cat0("\n\n### Attitude\n\n");
+
+ufs::meansComparisonDiamondPlot(dat,
+                                attitudeVars);
 
 ```
 
