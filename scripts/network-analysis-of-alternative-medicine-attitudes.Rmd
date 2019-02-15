@@ -53,7 +53,7 @@ dat$group <-
                   "Medicine"));
 
 dat$group_tri <-
-  ifelse(dat$group==2,
+  ifelse(dat$group=="Medicine",
          1,
          ifelse(dat$TCM6_simult < 3,
                 2,
@@ -68,7 +68,6 @@ dat$group_tri <-
                   "Alternative",
                   "Complementary"));
          
-
 ### Extract and store attitude variable names
 attitudeVars <-
   grep('ATT1_',
@@ -130,7 +129,7 @@ ggcorrplot::ggcorrplot(cors,
 
 ### Pairwise scatterplots {.tabset .tabset-fade .tabset-pills}
 
-```{r correlations-pairwise, fig.width=6, fig.height=6, results="asis"}
+```{r correlations-pairwise, fig.width=6, fig.height=6, results="asis", eval=FALSE}
 
 for (xAxisVar in attitudeVars) {
 
@@ -153,5 +152,11 @@ for (xAxisVar in attitudeVars) {
 
 ```
 
+
+```{r network-analyses, fig.width=6, fig.height=6, results="asis", eval=TRUE}
+
+
+
+```
 
 
