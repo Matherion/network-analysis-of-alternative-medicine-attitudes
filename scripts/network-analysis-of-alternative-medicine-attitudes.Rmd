@@ -20,6 +20,7 @@ ufs::safeRequire('haven');
 ufs::safeRequire('here');
 ufs::safeRequire('pander');
 ufs::safeRequire('GGally');
+ufs::safeRequire('ggcorrplot');
 ufs::safeRequire('userfriendlyscience');
 
 dataPath <-
@@ -40,6 +41,8 @@ dat <-
 ### for example, length(unique(dat[, 'group'])) results in 1 instead
 ### of 2...
 dat <- as.data.frame(dat);
+dat <- haven::zap_label(dat);
+dat <- haven::zap_labels(dat);
 
 ### Set group as factor
 dat$group <-
@@ -74,9 +77,35 @@ ufs::meansComparisonDiamondPlot(dat,
 
 ```
 
-## Correlations
+## Correlations {.tabset .tabset-fade}
 
-```{r correlations, fig.width=16, fig.height=16}
+### Pairwise scatterplots {.tabset .tabset-fade}
+
+```{r correlations-pairwise, fig.width=6, fig.height=6, results="asis"}
+
+for (xAxisVar in attitudeVars) {
+
+  ufs::cat0("\n\n#### ", xAxisVar,
+            " {.tabset .tabset-fade}\n\n");
+
+  for (yAxisVar in tail(attitudeVars, -1)) {
+
+    ufs::cat0("\n\n##### ", yAxisVar,
+              "\n\n");
+    
+    print(ggplot2::ggplot(data=dat,
+                          mapping=ggplot2::aes_string(x=xAxisVar,
+                                                      y=yAxisVar)) +
+            geom_jitter(size=3) +
+            theme_minimal());
+  }
+}
+
+```
+
+### All attitude variables together
+
+```{r correlations-all, fig.width=16, fig.height=16}
 
 ### Takes way too long, huge, etc
 # GGally::ggpairs(dat[, attitudeVars]);
