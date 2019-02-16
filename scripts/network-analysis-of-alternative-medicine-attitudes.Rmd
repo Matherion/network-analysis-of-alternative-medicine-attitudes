@@ -16,7 +16,6 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE);
 
 if (!'ufs' %in% row.names(installed.packages())) install.packages('ufs');
-require('haven');
 ufs::safeRequire('haven');
 ufs::safeRequire('here');
 ufs::safeRequire('pander');
@@ -129,7 +128,7 @@ ggcorrplot::ggcorrplot(cors,
 
 ### Pairwise scatterplots {.tabset .tabset-fade .tabset-pills}
 
-```{r correlations-pairwise, fig.width=6, fig.height=6, results="asis", eval=FALSE}
+```{r correlations-pairwise, fig.width=6, fig.height=6, results="asis", eval=TRUE}
 
 for (xAxisVar in attitudeVars) {
 
@@ -138,15 +137,18 @@ for (xAxisVar in attitudeVars) {
 
   for (yAxisVar in tail(attitudeVars, -1)) {
 
-    ufs::cat0("\n\n##### ", yAxisVar,
-              "\n\n");
-    
-    print(ggplot2::ggplot(data=dat,
-                          mapping=ggplot2::aes_string(x=xAxisVar,
-                                                      y=yAxisVar,
-                                                      color='group_tri')) +
-            geom_jitter(size=3) +
-            theme_minimal());
+    ### Only for 'half the matrix'
+    if (which(attitudeVars == yAxisVar) >
+        which(attitudeVars == xAxisVar)) {
+      ufs::cat0("\n\n##### ", yAxisVar,
+                "\n\n");
+      print(ggplot2::ggplot(data=dat,
+                            mapping=ggplot2::aes_string(x=xAxisVar,
+                                                        y=yAxisVar,
+                                                        color='group_tri')) +
+              geom_jitter(size=3) +
+              theme_minimal());
+    }
   }
 }
 
