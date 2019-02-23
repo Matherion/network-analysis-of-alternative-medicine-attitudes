@@ -1,7 +1,7 @@
 ---
 title: "Network analysis of alternative medicine attitudes"
 author: "Szilvia Zörgő, Samvel Mkhitaryan & Gjalt-Jorn Peters"
-date: "February 6, 2019"
+date: "`r format(Sys.Date())`"
 html_document:
   self_contained: true
 editor_options: 
@@ -28,6 +28,17 @@ ufs::safeRequire('pander');
 ufs::safeRequire('GGally');
 ufs::safeRequire('ggcorrplot');
 ufs::safeRequire('userfriendlyscience');
+ufs::safeRequire('tidyr')
+ufs::safeRequire('qgraph')
+ufs::safeRequire('bootnet')
+ufs::safeRequire('igraph')
+ufs::safeRequire('corpcor')
+ufs::safeRequire('NetworkComparisonTest')
+ufs::safeRequire('EstimateGroupNetwork')
+
+### Get dev versions of some packages
+devtools::install_gitlab("r-packages/ufs");
+devtools::install_gitlab("r-packages/yum");
 
 dataPath <-
   here::here('data');
@@ -78,6 +89,42 @@ attitudeVars <-
   grep('ATT1_',
        names(dat),
        value=TRUE);
+
+attitudeVars_2 <-
+  grep('ATT2_',
+       names(dat),
+       value=TRUE);
+
+```
+
+## Construct tree of attitude items
+
+```{r construct-tree}
+
+constructTreeYAML <-
+  yum::load_yaml_fragments(here::here("methods-construct-tree",
+                                      "cam-biomed-attitude-tree-1.dct"));
+
+constructTree <-
+  yum::build_tree(constructTreeYAML);
+
+### Set labels as names
+constructTree$Do(function(node) node$name <- node$label);
+
+### Convert to DiagrammeR graph
+constructGraph <-
+  data.tree::ToDiagrammeRGraph(constructTree);
+
+### Show graph
+DiagrammeR::render_graph(constructGraph);
+
+### Export graph
+DiagrammeR::export_graph(constructGraph,
+                         file_name = here::here("methods-construct-tree",
+                                                "cam-biomed-attitude-tree-1.png"));
+
+### Also plot as dendrogram (method not exported by this version of data.tree, oddly)
+plot(data.tree:::as.dendrogram.Node(constructTree));
 
 ```
 
@@ -160,9 +207,107 @@ for (xAxisVar in attitudeVars) {
 ```
 
 
+## Network analyses
+
+For the network analysis section we will first estimate a full network where a choice of medical practice is regarded as a system component. This will allow us explore how attitudes relate to the behavior of interest and the relative importance of each determinant. Afterwards, we will create sub samples based on a variable that represents groups of people that prefare one or other medical practice. This way we can investigate structural features of networks (topologies) that are peculiar to these groups.
+
 ```{r network-analyses, fig.width=6, fig.height=6, results="asis", eval=TRUE}
 
+# here I subset data that is going to be used in the network analysis with the behavior as a component.
 
+subset = dat[, c("sex", "age",
+                 "religion", "education",
+                 "salary", "family_status",
+                 attitudeVars,
+                 "group_tri")];
+
+### Here I create subsets based on the grouping variable.
+for(i in levels(subset$group_tri)){
+  assign(paste("subset",
+               i,
+               sep = "_"),
+         subset(subset,
+                subset$group_tri == i))    
+}
+
+### Samvel; applied some R 'best practices', see https://style.tidyverse.org/
+subset$group_tri <-
+  as.numeric(subset$group_tri);
+
+subset <-
+  subset %>% tidyr::drop_na();
+
+```
+
+## Step 1: Estimating the netork with full data. 
+
+```{r network-analyses, fig.width=6, fig.height=6, results="asis", eval=TRUE}
+
+network <-
+  estimateNetwork(subset[, c(7:47)],
+                  default = "EBICglasso");
+
+plot(network,
+     layout = 'spring',
+     labels = colnames(network),
+     title = c('Figure 1: A Network with the behavioral variable'));
+
+# Calculating centrality measures.
+centralityPlot(network,
+               include = "all");
+
+# Checking the stability of the centrality measures
+central_stability <- 
+  bootnet(network,
+          nBoots = 1000,
+          type = 'case');
+
+plot(central_stability)
+
+# Checking the stability/reliability of the edge weights
+edgewgt <-
+  bootnet(network,
+          nBoots = 2500);
+
+plot(edgewgt,
+     labels = FALSE,
+     order = 'sample');
+
+```
+
+# Exploring shortest paths from each node to the behavior of interest.
+
+```{r network-analyses, fig.width=6, fig.height=6, results="asis", eval=TRUE}
+
+## Calculting the shortest paths with Dijkstra's algorithm.
+
+### First we need to take the absoulte values of the adjacency matrix. Then recreate a network object for further analysis.
+
+absolute_adj <-
+  abs(network$graph);
+
+graph_full <- 
+  graph.adjacency(absolute_adj,
+                  mode = 'undirected',
+                  weighted = TRUE);
+
+# Calculate shortest path to the outcome variable and then delete the last row of the dataframe that includes the outcome variable (shortest path to itself = 0) 
+
+dijkstra_fullnetwork <-
+  igraph::distances(graph_full,
+                    v = V(graph_full),
+                    to = 26,
+                    algorithm = "dijkstra");
+
+dijkstra_ful <-
+  subset(dijkstra_fullnetwork,
+         dijkstra_fullnetwork[,] == min(dijkstra_fullnetwork[-c(26),]));
+
+# Creating a table with the shortest paths
+table_dijkstra <-
+  as.table(dijkstra_ful)
+
+print(table_dijkstra)
 
 ```
 
