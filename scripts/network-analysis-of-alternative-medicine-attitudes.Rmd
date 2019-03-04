@@ -1,10 +1,13 @@
 ---
 title: "Network analysis of alternative medicine attitudes"
-author: "Szilvia Zörgő, Samvel Mkhitaryan & Gjalt-Jorn Peters"
+author: "Szilvia ZÃƒÆ’Ã‚Â¶rgÃƒâ€¦Ã¢â‚¬Ëœ, Samvel Mkhitaryan & Gjalt-Jorn Peters"
 date: "`r format(Sys.Date())`"
+output:
+  word_document: default
+  pdf_document: default
 html_document:
-  self_contained: true
-editor_options: 
+  self_contained: yes
+editor_options:
   chunk_output_type: console
 ---
 
@@ -21,23 +24,34 @@ Note that in that preview, the 'tabbed layout' that makes, for example, userfrie
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE);
 
-if (!'ufs' %in% row.names(installed.packages())) install.packages('ufs');
+### General purpose utilies and installing missing packages when requiring
+if (!'ufs' %in% row.names(installed.packages())) devtools::install_gitlab('r-packages/ufs');
+
+### File input/output
 ufs::safeRequire('haven');
 ufs::safeRequire('here');
+
+### General purpose utilities, dataviz, etc
+ufs::safeRequire('userfriendlyscience');
 ufs::safeRequire('pander');
+ufs::safeRequire('tidyr')
 ufs::safeRequire('GGally');
 ufs::safeRequire('ggcorrplot');
-ufs::safeRequire('userfriendlyscience');
-ufs::safeRequire('tidyr')
+
+### For the network analyses
 ufs::safeRequire('qgraph')
 ufs::safeRequire('bootnet')
 ufs::safeRequire('igraph')
 ufs::safeRequire('corpcor')
 ufs::safeRequire('NetworkComparisonTest')
 ufs::safeRequire('EstimateGroupNetwork')
+ufs::safeRequire('ape')
+
+### For working with dendrograms
+ufs::safeRequire('ggdendro');
+ufs::safeRequire('dendextend');
 
 ### Get dev versions of some packages
-devtools::install_gitlab("r-packages/ufs");
 devtools::install_gitlab("r-packages/yum");
 
 dataPath <-
@@ -124,7 +138,18 @@ DiagrammeR::export_graph(constructGraph,
                                                 "cam-biomed-attitude-tree-1.png"));
 
 ### Also plot as dendrogram (method not exported by this version of data.tree, oddly)
-plot(data.tree:::as.dendrogram.Node(constructTree));
+constructDendro <-
+  data.tree:::as.dendrogram.Node(constructTree);
+
+### For future reference: check
+### http://www.sthda.com/english/wiki/beautiful-dendrogram-visualizations-in-r-5-must-known-methods-unsupervised-machine-learning#ggdendro-package-ggplot2-and-dendrogram
+
+ggConstructDendro <-
+  ggdendro::ggdendrogram(constructDendro,
+                         rotate=TRUE);
+
+plot(data.tree:::as.dendrogram.Node(constructTree),
+     horiz=TRUE);
 
 ```
 
@@ -209,17 +234,17 @@ for (xAxisVar in attitudeVars) {
 
 ## Network analyses
 
-For the network analysis section we will first estimate a full network where a choice of medical practice is regarded as a system component. This will allow us explore how attitudes relate to the behavior of interest and the relative importance of each determinant. Afterwards, we will create sub samples based on a variable that represents groups of people that prefare one or other medical practice. This way we can investigate structural features of networks (topologies) that are peculiar to these groups.
+For the network analysis section we will first estimate a full network where a choice of medical practice is regarded as a system component. This will allow us to explore how attitudes relate to the behavior of interest and the relative importance of each determinant. Afterwards, we will create sub samples based on a variable that represents groups of people that prefere one or other medical practice. This way we can investigate structural features of networks (topologies) that are peculiar to these groups.
 
 ```{r network-analyses, fig.width=6, fig.height=6, results="asis", eval=TRUE}
 
 # here I subset data that is going to be used in the network analysis with the behavior as a component.
 
-subset = dat[, c("sex", "age",
-                 "religion", "education",
-                 "salary", "family_status",
-                 attitudeVars,
+subset <- dat[, c(attitudeVars, 
                  "group_tri")];
+
+# I eliminated other variables of interest (sex, age etc.) because the N in subgroups are very small and the number of "predictor" variables would exceed the number of datapoints.  
+
 
 ### Here I create subsets based on the grouping variable.
 for(i in levels(subset$group_tri)){
@@ -230,7 +255,6 @@ for(i in levels(subset$group_tri)){
                 subset$group_tri == i))    
 }
 
-### Samvel; applied some R 'best practices', see https://style.tidyverse.org/
 subset$group_tri <-
   as.numeric(subset$group_tri);
 
@@ -244,7 +268,7 @@ subset <-
 ```{r network-analyses, fig.width=6, fig.height=6, results="asis", eval=TRUE}
 
 network <-
-  estimateNetwork(subset[, c(7:47)],
+  estimateNetwork(subset,
                   default = "EBICglasso");
 
 plot(network,
@@ -275,16 +299,20 @@ plot(edgewgt,
 
 ```
 
-# Exploring shortest paths from each node to the behavior of interest.
+### Exploring shortest paths from each node to the behavior of interest.
 
+Before applying Dijkstra's algorithm we need to 1/the corelation matrix to invert it so the strongest connections will be represented with smaller numbers and the smallest correlations with larger.
+ 
 ```{r network-analyses, fig.width=6, fig.height=6, results="asis", eval=TRUE}
 
-## Calculting the shortest paths with Dijkstra's algorithm.
-
-### First we need to take the absoulte values of the adjacency matrix. Then recreate a network object for further analysis.
+### First we need to take the absoulte values of the adjacency matrix and devide 1 by the matrix. Then recreate a network object for further analysis.
 
 absolute_adj <-
   abs(network$graph);
+
+for (i in which(absolute_adj > 0)) {
+  absolute_adj[i] = 1/absolute_adj[i] 
+}
 
 graph_full <- 
   graph.adjacency(absolute_adj,
@@ -296,19 +324,57 @@ graph_full <-
 dijkstra_fullnetwork <-
   igraph::distances(graph_full,
                     v = V(graph_full),
-                    to = 26,
+                    to = 41,
                     algorithm = "dijkstra");
 
 dijkstra_ful <-
   subset(dijkstra_fullnetwork,
-         dijkstra_fullnetwork[,] == min(dijkstra_fullnetwork[-c(26),]));
+         dijkstra_fullnetwork[,] == min(dijkstra_fullnetwork[-c(41),]));
+```
 
-# Creating a table with the shortest paths
-table_dijkstra <-
-  as.table(dijkstra_ful)
 
-print(table_dijkstra)
+### Exploring network structure.
+
+Here we apply greedy hirarchical clustering algorithm to detect clusters in the data. Then we plot the results and the respective dendrogram.
+
+```{r network-analyses, fig.width=6, fig.height=6, results="asis", eval=TRUE}
+
+fg <- 
+  fastgreedy.community(graph_full, weights = E(graph_full)$weight)
+
+fg$names <- 
+  strtrim(fg$names, 7)
+
+V(graph_full)$name <-
+  strtrim(fg$names, 7)
+
+length(fg)
+sizes(fg)
+
+
+set.seed(100)
+
+par(mfrow=c(1,2))
+
+plot(fg, graph_full, 
+     vertex.label.cex=c(0.5,0.5,0.5),
+     vertex.label.font=c(2))
+
+dendPlot(fg, mode = 'phylo')
 
 ```
 
+## Step 2: Group Comparisons.
+
+```{r network-analyses, fig.width=6, fig.height=6, results="asis", eval=TRUE}
+
+alternative <-
+  tidyr::drop_na(subset_Alternative[,-c(41)])
+biomedical <-
+  tidyr::drop_na(subset_Biomed[,-c(41)])
+
+network_fgl <-
+  EstimateGroupNetwork(list('Alternative' = alternative,
+                                     "Biomed" = biomedical)) # We get an empty network.
+```
 

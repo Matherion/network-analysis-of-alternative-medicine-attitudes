@@ -1,32 +1,89 @@
 ---
 dct:
-  -
-    id: grandparent1
-    label: Grand parent numero uno
-    children:
-      -
-        id: parent1
-        label: a parent bla die bla
-        children:
-          -
-            id: child1
-            children: ['grandchild1', 'grandchild2', 'grandchild3']
-          -
-            id: child2
-            children: ['grandchild4', 'grandchild5', 'grandchild6']
-      -
-        id: parent2
-        children:
-          -
-            id: child3
-            children: ['grandchild7', 'grandchild8', 'grandchild9']
-          -
-            id: child4
-            children: ['grandchild10', 'grandchild11', 'grandchild12']
-      -
-        id: parent3
-        children:
-          -
-            id: child5
-            children: ['grandchild13', 'grandchild14']
+  id: alternative_medicine_attitudes
+  children:
+    -
+      id: cosmos
+      children:
+        -
+          id: illness_sympolism
+          children:
+            - 
+              id: tempid1
+              children: ["ATT4_", "ATT31_", "ATT21_"]
+            -
+              id: tempid2
+              children: ["ATT33_", "ATT9_"]
+            -
+              id: tempid3
+              children: ["ATT11_", "ATT36_"]
+            -
+              id: emotional_development
+              children: ["ATT28_", "ATT26_"]        
+            -
+              id: treats_symptom
+              children: "ATT18_"
+        -
+          id: purpose_in_illness
+          children:
+            -
+              id: tempid4
+              children: ["ATT17_", "ATT20_"]
+            -
+              id: tempid5
+              children: ["ATT10_", "ATT16_", "ATT23_"]
+            -
+              id: destiny
+              children: ["ATT2_", "ATT38_"]
+        -
+          id: energy
+          children: ["ATT34_", "ATT27_", "ATT14_"]
+        -
+          id: imbalance
+          children: "ATT6_"
+        -
+          id: symptoms_worse
+          children: "ATT40_"        
+    -
+      id: gaia_technophobia
+      children:
+        -
+          id: toxin
+          children:
+            -
+              id: cancer_treatment
+              children: ["ATT29_", "ATT25_"]
+            -
+              id: the_natural
+              children: ["ATT39_", "ATT22_"]
+            -
+              id: biopsy
+              children: "ATT37_"
+            -
+              id: vaccine
+              children: "ATT30_"
+        -
+          id: traditional
+          children: ["ATT15_", "ATT3_"]
+        -
+          id: electro_smog
+          children: "ATT13_"
+    -
+      id: biomedicine
+      children:
+        -
+          id: diet_and_exercise
+          children: ["ATT7_", "ATT1_", "ATT12_"]
+        -
+          id: genetics
+          children: "ATT24_"
+        -
+          id: trust_in_western_doctors
+          children: ["ATT32_", "ATT35_"]
+        -
+          id: external_control
+          children: ["ATT5_", "ATT19_"]
+    -
+      id: exam
+      children: "ATT8_"
 ---
