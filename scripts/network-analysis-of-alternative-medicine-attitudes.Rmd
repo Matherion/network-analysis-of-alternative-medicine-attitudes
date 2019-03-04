@@ -321,26 +321,50 @@ plot(network,
      labels = colnames(network),
      title = c('Figure 1: A Network with the behavioral variable'));
 
+### Also store to disk - Sam, you can copy this for any other plots of course
+pdf(here::here('results-intermediate',
+               'network-with-grouping-variable.pdf'));
+plot(network,
+     layout = 'spring',
+     labels = colnames(network),
+     title = c('Figure 1: A Network with the behavioral variable'));
+dev.off();
+
 # Calculating centrality measures.
+pdf(here::here('results-intermediate',
+               'centrality_plot.pdf'));
 centralityPlot(network,
                include = "all");
+dev.off();
 
 # Checking the stability of the centrality measures
 central_stability <- 
   bootnet(network,
+          nCores = 20,
           nBoots = 1000,
           type = 'case');
 
+pdf(here::here('results-intermediate',
+               'centrality_stability_plot.pdf'));
 plot(central_stability)
+dev.off();
 
 # Checking the stability/reliability of the edge weights
 edgewgt <-
   bootnet(network,
+          nCores = 20,
           nBoots = 2500);
 
 plot(edgewgt,
      labels = FALSE,
      order = 'sample');
+
+pdf(here::here('results-intermediate',
+               'edge_weights.pdf'));
+plot(edgewgt,
+     labels = FALSE,
+     order = 'sample');
+dev.off();
 
 ```
 
