@@ -47,9 +47,10 @@ ufs::safeRequire('NetworkComparisonTest')
 ufs::safeRequire('EstimateGroupNetwork')
 ufs::safeRequire('ape')
 
-### For working with dendrograms
+### For working with trees and dendrograms
 ufs::safeRequire('ggdendro');
 ufs::safeRequire('dendextend');
+ufs::safeRequire('data.tree');
 
 ### Get dev versions of some packages
 devtools::install_gitlab("r-packages/yum");
@@ -122,8 +123,20 @@ constructTreeYAML <-
 constructTree <-
   yum::build_tree(constructTreeYAML);
 
+constructTree$Do(function(node) {
+  nameFromDataset <-
+    grep(node$name,
+         names(dat),
+         value=TRUE);
+  print(nameFromDataset);
+  if (length(nameFromDataset) > 0) {
+    node$label <- nameFromDataset;
+  }},
+  filterFun = data.tree::isLeaf);
+
 ### Set labels as names
-constructTree$Do(function(node) node$name <- node$label);
+constructTree$Do(function(node) node$name <-
+                   node$label);
 
 ### Convert to DiagrammeR graph
 constructGraph <-
@@ -141,15 +154,47 @@ DiagrammeR::export_graph(constructGraph,
 constructDendro <-
   data.tree:::as.dendrogram.Node(constructTree);
 
+### Get labels in same order
+constructTreeLabels <-
+  unlist(constructTree$Get('label', filterFun=data.tree::isLeaf));
+
 ### For future reference: check
 ### http://www.sthda.com/english/wiki/beautiful-dendrogram-visualizations-in-r-5-must-known-methods-unsupervised-machine-learning#ggdendro-package-ggplot2-and-dendrogram
 
-ggConstructDendro <-
+ggConstructDendro1 <-
   ggdendro::ggdendrogram(constructDendro,
-                         rotate=TRUE);
+                         rotate=TRUE,
+                         theme_dendro = TRUE) +
+  ggplot2::scale_x_continuous(position="top",
+                              breaks=seq_along(constructTreeLabels),
+                              labels=constructTreeLabels) +
+  ggplot2::scale_y_reverse();
 
-plot(data.tree:::as.dendrogram.Node(constructTree),
-     horiz=TRUE);
+print(ggConstructDendro1);
+
+ggsave(filename=here::here("methods-construct-tree",
+                           "cam-biomed-dendrogram-1.png"),
+       plot=ggConstructDendro1,
+       width=12,
+       height=19,
+       units='cm');
+
+ggConstructDendro2 <-
+  constructDendro %>%
+    dendextend::set("branches_k_color",
+                    value = viridis::viridis(4),
+                    k = 4) %>%
+    dendextend::as.ggdend() %>%
+    ggplot2::ggplot(horiz=TRUE);
+
+print(ggConstructDendro2);
+
+ggsave(filename=here::here("methods-construct-tree",
+                           "cam-biomed-dendrogram-2.png"),
+       plot=ggConstructDendro2,
+       width=40,
+       height=30,
+       units='cm');
 
 ```
 
@@ -376,5 +421,44 @@ biomedical <-
 network_fgl <-
   EstimateGroupNetwork(list('Alternative' = alternative,
                                      "Biomed" = biomedical)) # We get an empty network.
+```
+
+### Item Clustering Analysis
+
+```{r network-analyses, fig.width=6, fig.height=6, results="asis", eval=TRUE}
+
+absolute_adj_hc <-
+  abs(network$graph);
+
+
+graph_full_hc <- 
+  graph.adjacency(absolute_adj[-c(41),-c(41)],
+                  mode = 'undirected',
+                  weighted = TRUE)
+
+
+fg_item <- 
+  fastgreedy.community(graph_full_hc, weights = E(graph_full_hc)$weight)
+
+fg_item$names <- 
+  strtrim(fg_item$names, 7)
+
+V(graph_full_hc)$name <-
+  strtrim(fg_item$names, 7)
+
+length(fg_item)
+sizes(fg_item)
+
+
+set.seed(101)
+
+par(mfrow=c(1,2))
+
+plot(fg_item, graph_full_hc, 
+     vertex.label.cex=c(0.5,0.5,0.5),
+     vertex.label.font=c(2))
+
+dendPlot(fg_item, mode = 'phylo')
+
 ```
 
