@@ -9,13 +9,13 @@ dct:
           id: illness_symbolism
           children:
             - 
-              id: tempid1
+              id: body_scheme
               children: ["ATT1_4_", "ATT1_31_", "ATT1_21_"]
             -
-              id: tempid2
+              id: mental_power
               children: ["ATT1_33_", "ATT1_9_"]
             -
-              id: tempid3
+              id: body_memory
               children: ["ATT1_11_", "ATT1_36_"]
             -
               id: emotional_development
@@ -27,13 +27,13 @@ dct:
           id: purpose_in_illness
           children:
             -
-              id: tempid4
+              id: chance
               children: ["ATT1_17_", "ATT1_20_"]
             -
-              id: tempid5
+              id: destiny
               children: ["ATT1_10_", "ATT1_16_", "ATT1_23_"]
             -
-              id: destiny
+              id: learning
               children: ["ATT1_2_", "ATT1_38_"]
         -
           id: energy

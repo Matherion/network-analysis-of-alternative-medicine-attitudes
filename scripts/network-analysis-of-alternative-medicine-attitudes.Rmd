@@ -3,10 +3,9 @@ title: "Network analysis of alternative medicine attitudes"
 author: "Szilvia ZÃƒÆ’Ã‚Â¶rgÃƒâ€¦Ã¢â‚¬Ëœ, Samvel Mkhitaryan & Gjalt-Jorn Peters"
 date: "`r format(Sys.Date())`"
 output:
-  word_document: default
-  pdf_document: default
-html_document:
-  self_contained: yes
+  html_document:
+    self_contained: yes
+    always_allow_html: yes
 editor_options:
   chunk_output_type: console
 ---
@@ -57,6 +56,9 @@ devtools::install_gitlab("r-packages/yum");
 
 dataPath <-
   here::here('data');
+
+workingPath <-
+  here::here("results-intermediate");
 
 ```
 
@@ -232,6 +234,11 @@ cors <- cor(dat[, attitudeVars],
 
 knitr::kable(cors);
 
+### Save to csv
+write.csv(cors,
+          file=file.path(workingPath,
+                         "correlations--bivariate--all-cases.csv"));
+
 ### http://www.sthda.com/english/wiki/ggcorrplot-visualization-of-a-correlation-matrix-using-ggplot2
                 
 ggcorrplot::ggcorrplot(cors);
@@ -281,7 +288,7 @@ for (xAxisVar in attitudeVars) {
 
 For the network analysis section we will first estimate a full network where a choice of medical practice is regarded as a system component. This will allow us to explore how attitudes relate to the behavior of interest and the relative importance of each determinant. Afterwards, we will create sub samples based on a variable that represents groups of people that prefere one or other medical practice. This way we can investigate structural features of networks (topologies) that are peculiar to these groups.
 
-```{r network-analyses, fig.width=6, fig.height=6, results="asis", eval=TRUE}
+```{r network-analyses-1, fig.width=6, fig.height=6, results="asis", eval=TRUE}
 
 # here I subset data that is going to be used in the network analysis with the behavior as a component.
 
@@ -310,7 +317,7 @@ subset <-
 
 ## Step 1: Estimating the netork with full data. 
 
-```{r network-analyses, fig.width=6, fig.height=6, results="asis", eval=TRUE}
+```{r network-analyses-2, fig.width=6, fig.height=6, results="asis", eval=TRUE}
 
 network <-
   estimateNetwork(subset,
@@ -337,34 +344,34 @@ centralityPlot(network,
                include = "all");
 dev.off();
 
-# Checking the stability of the centrality measures
-central_stability <- 
-  bootnet(network,
-          nCores = 20,
-          nBoots = 1000,
-          type = 'case');
-
-pdf(here::here('results-intermediate',
-               'centrality_stability_plot.pdf'));
-plot(central_stability)
-dev.off();
-
-# Checking the stability/reliability of the edge weights
-edgewgt <-
-  bootnet(network,
-          nCores = 20,
-          nBoots = 2500);
-
-plot(edgewgt,
-     labels = FALSE,
-     order = 'sample');
-
-pdf(here::here('results-intermediate',
-               'edge_weights.pdf'));
-plot(edgewgt,
-     labels = FALSE,
-     order = 'sample');
-dev.off();
+# # Checking the stability of the centrality measures
+# central_stability <- 
+#   bootnet(network,
+#           nCores = 20,
+#           nBoots = 1000,
+#           type = 'case');
+# 
+# pdf(here::here('results-intermediate',
+#                'centrality_stability_plot.pdf'));
+# plot(central_stability)
+# dev.off();
+# 
+# # Checking the stability/reliability of the edge weights
+# edgewgt <-
+#   bootnet(network,
+#           nCores = 20,
+#           nBoots = 2500);
+# 
+# plot(edgewgt,
+#      labels = FALSE,
+#      order = 'sample');
+# 
+# pdf(here::here('results-intermediate',
+#                'edge_weights.pdf'));
+# plot(edgewgt,
+#      labels = FALSE,
+#      order = 'sample');
+# dev.off();
 
 ```
 
@@ -372,7 +379,7 @@ dev.off();
 
 Before applying Dijkstra's algorithm we need to 1/the corelation matrix to invert it so the strongest connections will be represented with smaller numbers and the smallest correlations with larger.
  
-```{r network-analyses, fig.width=6, fig.height=6, results="asis", eval=TRUE}
+```{r network-analyses-3, fig.width=6, fig.height=6, results="asis", eval=TRUE}
 
 ### First we need to take the absoulte values of the adjacency matrix and devide 1 by the matrix. Then recreate a network object for further analysis.
 
@@ -406,7 +413,7 @@ dijkstra_ful <-
 
 Here we apply greedy hirarchical clustering algorithm to detect clusters in the data. Then we plot the results and the respective dendrogram.
 
-```{r network-analyses, fig.width=6, fig.height=6, results="asis", eval=TRUE}
+```{r network-analyses-4, fig.width=6, fig.height=6, results="asis", eval=TRUE}
 
 fg <- 
   fastgreedy.community(graph_full, weights = E(graph_full)$weight)
@@ -435,7 +442,7 @@ dendPlot(fg, mode = 'phylo')
 
 ## Step 2: Group Comparisons.
 
-```{r network-analyses, fig.width=6, fig.height=6, results="asis", eval=TRUE}
+```{r network-analyses-5, fig.width=6, fig.height=6, results="asis", eval=TRUE}
 
 alternative <-
   tidyr::drop_na(subset_Alternative[,-c(41)])
@@ -444,12 +451,12 @@ biomedical <-
 
 network_fgl <-
   EstimateGroupNetwork(list('Alternative' = alternative,
-                                     "Biomed" = biomedical)) # We get an empty network.
+                            "Biomed" = biomedical)) # We get an empty network.
 ```
 
 ### Item Clustering Analysis
 
-```{r network-analyses, fig.width=6, fig.height=6, results="asis", eval=TRUE}
+```{r network-analyses-6, fig.width=6, fig.height=6, results="asis", eval=TRUE}
 
 absolute_adj_hc <-
   abs(network$graph);
@@ -462,7 +469,13 @@ graph_full_hc <-
 
 
 fg_item <- 
-  fastgreedy.community(graph_full_hc, weights = E(graph_full_hc)$weight)
+  fastgreedy.community(graph_full_hc,
+                       weights = E(graph_full_hc)$weight,
+                       cut_a)
+
+fg_item <-
+  cut_at(fg_item,
+         no=10)
 
 fg_item$names <- 
   strtrim(fg_item$names, 7)
@@ -483,6 +496,27 @@ plot(fg_item, graph_full_hc,
      vertex.label.font=c(2))
 
 dendPlot(fg_item, mode = 'phylo')
+
+
+###
+###     attitudeVars
+###
+
+
+lapply(1:20,
+       function(x)
+         return(attitudeVars[which(cut_at(fg_item,
+                                          no=20)==x)]));
+
+### Trying to cut the inductive dendrogram
+walk <- g %>%
+  cluster_walktrap() %>%
+  cut_at(no = 10)
+
+eb <- g %>%
+  cluster_edge_betweenness() %>%
+  cut_at(no = 10)
+
 
 ```
 

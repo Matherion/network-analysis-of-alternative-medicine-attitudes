@@ -1,0 +1,81 @@
+---
+dct:
+  id: alternative_medicine_attitudes
+  children:
+	id: Label_1 (?)
+	children:
+		-
+		  id: Lifestyle Impacts Health
+		  children:
+			-
+			  id: Belief that healthy diet & Phys activity influence health
+			  children: ["ATT1_1_", "ATT1_12_"]
+			-
+			  id: Keeping healthy diet
+			  children: ["ATT1_7_"]
+		-
+		  id: Trust in Western Medical Practices
+		  children:
+			-
+			  id: Trust in western remedies
+			  children: ["ATT1_32_", "ATT1_35_"]
+			-
+			  id: Objective metrics of healing
+			  children: ["ATT1_8_"]
+		-
+		  id: Beliefs about illness and environment
+		  children: ["ATT1_5_", "ATT1_24_" "ATT1_13_?"]
+		-
+		  id: Believing in randomness of life events
+		  children: ["ATT1_17_", "ATT1_20_"]
+		-
+		  id: Beliefs about the negative nature of Western medical practices
+		  children: ["ATT1_18_", "ATT1_25_", "ATT1_29_"] 
+		
+	id: Label_2 (?)
+	children:  
+		id: Problems with the soul causes illness
+		children:
+			-
+			  id: Positive beliefs towards eastern philosophy and medical practices. 
+			  children:
+				-
+				  id: Beliefs about the teachings of eastern religions
+				  children: ["ATT1_14_", "ATT1_34_", "ATT1_27_"]
+				-
+				  id: Everything is connected to everything
+				  children: ["ATT1_16_"]
+				-
+				  id: UNIVERSAL REASON
+				  children: ["ATT1_23_"]
+			-
+			  id: Problems with the soul causes illness
+			  children:
+				-
+				  id: Body and Soul are connected 
+				  children: ["ATT1_4_", "ATT1_6_", "ATT1_21_","ATT1_11_"]
+				-
+				  id: Healing through working on emotions 
+				  children: ["ATT1_28_", "ATT1_33_", "ATT1_36_", "ATT1_26_", "ATT1_9_"]
+		-
+		  id: Suffering and Healing
+		  children: ["ATT1_2_", "ATT1_40_"]  
+		-
+		  id: Learning experience and personal growth
+		  children: ["ATT1_10_", "ATT1_38_", "ATT1_31_"]
+		-
+		  id: Trust in traditional remedies
+		  children: ["ATT1_3_", "ATT1_15_"]
+		-
+		  id: Preference for natural remedies
+		  children: ["ATT1_39_", "ATT1_22_", "ATT1_30_", "ATT1_37_"]  
+
+	
+	  
+	-
+	  id: Passivity in treatment
+	  children: ["ATT1_19_"]  
+	  
+	  
+	  
+	  
